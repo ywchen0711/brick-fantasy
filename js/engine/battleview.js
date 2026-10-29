@@ -53,7 +53,7 @@ export class BattleView {
     this.stage(look); this.tweens = []; this.views = new Map(); this.camT = 0;
     const s = G.s, ids = active();
     const heroes = ids.map((id) => { const p = s.party[id]; return { id, n: CHARS[id].n, lv: p.lv, hp: p.hp, mp: p.mp, ko: p.ko || p.hp <= 0, st: heroStats(id), skills: heroSkills(id), echo: p.echo }; });
-    this.b = new Battle({ heroes, foes, boss, canFlee, diff: [0.75, 1, 1.25][s.opts.diff ?? 1], count: (i) => count(i), consume: (i) => take(i), preempt });
+    this.b = new Battle({ heroes, foes, boss, canFlee, diff: [0.75, 1, 1.25][s.opts.diff ?? 1], count: (i) => count(i), consume: (i) => take(i), preempt, know: (s.known ||= {}) });
     for (const f of this.b.foes()) s.seen[f.id] = Math.max(s.seen[f.id] || 0, 1);
     this.dom(); this.place();
     this.prevMusic = nowPlaying(); music(opts.music || (boss ? 'boss' : 'battle'), { restart: true });
@@ -194,7 +194,7 @@ export class BattleView {
         case 'phase': await this.bossLine(e.u, e.say); break;
         case 'summon': this.layoutFoes(false); this.drawTimeline(); sfx('echo'); this.msg(`${e.u.n}出現了！`); await wait(500 / sp); break;
         case 'steal': this.pop(e.u, e.item ? `偷到了 ${ITEMS[e.item].n}！` : e.none ? '沒有東西可偷' : '偷竊失敗', e.item ? 'buff' : 'st'); if (e.item) sfx('coin'); await wait(450 / sp); break;
-        case 'scan': this.drawTag(e.tg); this.pop(e.tg, '看穿了！', 'buff'); sfx('light'); await wait(350 / sp); break;
+        case 'scan': for (const f of this.b.foes()) this.drawTag(f); this.pop(e.tg, '看穿了！', 'buff'); sfx('light'); await wait(350 / sp); break;
         case 'flee': if (e.ok) { this.msg('逃跑了！'); sfx('flee'); await this.tween(0.6, (k) => { for (const v of this.views.values()) if (v.side === 'h') { v.pos.x = v.home.x + k * 6; v.yaw = Math.PI / 2; v.running = true; } }); } else { this.msg('逃不掉！'); sfx('buzz'); await wait(500 / sp); } break;
         case 'jump': { const v = this.views.get(e.u.uid); sfx('wind'); await this.tween(0.4, (k) => { v.pos.y = k * 9; }); v.root.visible = false; break; }
         case 'land': { const v = this.views.get(e.u.uid); v.root.visible = true; break; }

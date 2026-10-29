@@ -14,7 +14,8 @@ let UID = 1;
 
 export class Battle {
   // heroes: [{ id, n, lv, hp, mp, st: stats from heroStats, skills, echo, ko }], foes: [enemy ids]
-  constructor({ heroes, foes, boss = false, canFlee = true, diff = 1, rng = Math.random, count = () => 0, consume = () => {}, preempt = 0 }) {
+  constructor({ heroes, foes, boss = false, canFlee = true, diff = 1, rng = Math.random, count = () => 0, consume = () => {}, preempt = 0, know = {} }) {
+    this.know = know; // what has been learned about each kind of foe, kept between fights: { enemyId: ['fire', …, '_scan'] }
     this.rng = rng; this.diff = diff; this.boss = boss; this.canFlee = canFlee && !boss; this.count = count; this.consume = consume;
     this.units = []; this.res = 0; this.turnNo = 0; this.result = null; this.gained = []; this.drops = []; this.fled = false;
     heroes.forEach((h, i) => this.units.push(this.mkHero(h, i)));
@@ -30,8 +31,15 @@ export class Battle {
   mkFoe(id, i) {
     const d = ENEMIES[id], s = stat(d);
     return { uid: UID++, side: 'f', id, d, n: d.n, lv: d.lv, slot: i, hp: s.hp, maxhp: s.hp, mp: 999, maxmp: 999, atk: s.atk, def: s.def, mag: s.mag, spr: s.spr, spd: s.spd, luk: s.luk,
-      xp: s.xp, gil: s.gil, ep: s.ep, brk: s.brk, brkMax: s.brk, stag: false, known: new Set(), scanned: false, stolen: false, charging: null, phase: 0, boss: !!d.boss,
+      xp: s.xp, gil: s.gil, ep: s.ep, brk: s.brk, brkMax: s.brk, stag: false, known: new Set((this.know[id] || []).filter((e) => e !== '_scan')), scanned: (this.know[id] || []).includes('_scan'), stolen: false, charging: null, phase: 0, boss: !!d.boss,
       w: d.w, r: d.r, n0: d.n0, a: d.a, st: {}, blinkN: 0, ct: 0, crit: 5, brkP: 0, passives: [] };
+  }
+  // remember an element (or that it was scanned) for every foe of this kind, in this fight and the next
+  learn(t, e) {
+    if (e !== '_scan') t.known.add(e);
+    const k = (this.know[t.id] ||= []); if (!k.includes(e)) k.push(e);
+    if (e !== '_scan') for (const f of this.units) if (f.side === 'f' && f.id === t.id) f.known.add(e);
+    if (e === '_scan') for (const f of this.units) if (f.side === 'f' && f.id === t.id) f.scanned = true;
   }
   heroes() { return this.units.filter((u) => u.side === 'h'); }
   foes() { return this.units.filter((u) => u.side === 'f' && !u.gone); }
@@ -135,7 +143,7 @@ export class Battle {
     this.hitWeak = false;
     let tg = this.targets(u, sk, chosen);
     ev.push({ t: 'act', u, name: sk.n, sk: sk.id, tg, kind: cmd.kind });
-    if (sk.k === 'scan') { for (const t of tg) { t.scanned = true; for (const w of t.w || []) t.known.add(w); ev.push({ t: 'scan', tg: t }); } if (sk.st) this.applySt(u, [u], sk.st, ev); return; }
+    if (sk.k === 'scan') { for (const t of tg) { t.scanned = true; for (const w of t.w || []) this.learn(t, w); this.learn(t, '_scan'); ev.push({ t: 'scan', tg: t }); } if (sk.st) this.applySt(u, [u], sk.st, ev); return; }
     if (sk.x.summon) { const d = u.d; if (this.foes().filter((f) => f.hp > 0).length < 5) { const nf = this.mkFoe(d.summon || u.id, this.units.length); nf.ct = 0; nf.summoned = true; this.units.push(nf); ev.push({ t: 'summon', u: nf, by: u }); } else ev.push({ t: 'msg', text: '但是沒有同伴來。' }); return; }
     if (sk.x.stealGil) { ev.push({ t: 'msg', text: `${u.n}偷走了一些錢！` }); this.gilStolen = (this.gilStolen || 0) + 20 + u.lv * 5; return; }
     if (sk.k === 'buff' || sk.k === 'debuff') { if (sk.p && sk.k === 'debuff' && sk.el !== 'weapon') { } this.applySt(u, tg, sk.st || [], ev, sk.k === 'debuff'); if (sk.x.cover) u.cover = true; if (sk.b && sk.k === 'debuff') for (const t of tg) this.wear(u, t, sk.b, false, ev); return; }
@@ -228,7 +236,7 @@ export class Battle {
     if (t.st.endure && dmg >= t.hp && t.hp > 1) { dmg = t.hp - 1; delete t.st.endure; ev.push({ t: 'msg', text: `${t.n}撐住了！` }); }
     t.hp = Math.max(0, t.hp - dmg);
     if (t.st.sleep) { delete t.st.sleep; ev.push({ t: 'status', tg: t, st: 'sleep', on: false }); }
-    if (t.side === 'f') for (const e of els) if (t.w.includes(e) || t.r.includes(e) || t.a.includes(e) || t.n0.includes(e)) t.known.add(e);
+    if (t.side === 'f') for (const e of els) if (t.w.includes(e) || t.r.includes(e) || t.a.includes(e) || t.n0.includes(e)) this.learn(t, e);
     ev.push({ t: 'hit', tg: t, dmg, crit, weak: aff === 'weak', resist: aff === 'resist' || aff === 'null', el: els[0] || sk.el, u, sk: sk.id });
     if (t.side === 'f' && aff === 'weak') { this.hitWeak = true; this.gain(u, 6, ev); }
     if (crit) this.gain(u, 3, ev);

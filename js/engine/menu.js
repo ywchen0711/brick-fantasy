@@ -170,7 +170,7 @@ async function beastMenu() {
   const list = Object.values(ENEMIES).filter((e) => G.s.seen[e.id]);
   const total = Object.values(ENEMIES).length;
   side('');
-  const r = await UI.list(list.map((e) => ({ label: e.n, right: G.s.seen[e.id] >= 2 ? `Lv${e.lv}` : '???', help: G.s.seen[e.id] >= 2 ? `HP ${stat(e).hp.toLocaleString()}　弱點：${e.w.map((w) => EL[w]).join('、') || '無'}${e.r.length ? `　抗性：${e.r.map((w) => EL[w]).join('、')}` : ''}${e.a.length ? `　吸收：${e.a.map((w) => EL[w]).join('、')}` : ''}${e.steal ? `<br>可偷：${ITEMS[e.steal].n}` : ''}${e.drop?.length ? `　掉落：${ITEMS[e.drop[0]]?.n || ''}` : ''}` : '打倒後才會知道詳細資料' })), { title: `魔物圖鑑　${list.length}/${total}`, cls: 'menu2 wide', cols: 2 });
+  const r = await UI.list(list.map((e) => ({ label: e.n, right: G.s.seen[e.id] >= 2 ? `Lv${e.lv}` : '???', help: G.s.seen[e.id] >= 2 || G.s.known?.[e.id]?.length ? `HP ${G.s.seen[e.id] >= 2 || G.s.known?.[e.id]?.includes('_scan') ? stat(e).hp.toLocaleString() : '???'}　弱點：${e.w.map((w) => ((G.s.known?.[e.id] || []).includes(w) ? EL[w] : '？')).join('、') || '無'}${e.r.filter((w) => (G.s.known?.[e.id] || []).includes(w)).length ? `　抗性：${e.r.filter((w) => (G.s.known?.[e.id] || []).includes(w)).map((w) => EL[w]).join('、')}` : ''}${e.a.filter((w) => (G.s.known?.[e.id] || []).includes(w)).length ? `　吸收：${e.a.filter((w) => (G.s.known?.[e.id] || []).includes(w)).map((w) => EL[w]).join('、')}` : ''}${e.steal ? `<br>可偷：${ITEMS[e.steal].n}` : ''}${e.drop?.length ? `　掉落：${ITEMS[e.drop[0]]?.n || ''}` : ''}` : '打倒後才會知道詳細資料' })), { title: `魔物圖鑑　${list.length}/${total}`, cls: 'menu2 wide', cols: 2 });
 }
 async function optsMenu() {
   for (;;) {
