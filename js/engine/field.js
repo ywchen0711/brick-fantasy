@@ -102,10 +102,10 @@ export class Field {
     // the player
     const L = this.leader;
     if (L && this.control && !this.paused) {
-      const ax = I.axis();
+      const au = this.autoMove?.(dt), ax = au || I.axis(); // auto-grinding (grind.js) holds the stick itself, in world directions
       if (ax.l > 0.15) {
-        const sp = (this.vehicle === 'airship' ? 14 : this.vehicle === 'ship' ? 9 : this.vehicle === 'dashbird' ? 10 : I.down('run') ? 7.6 : 5.4) * Math.max(0.45, ax.l) * dt;
-        const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), mx = ax.x * cy + ax.z * sy, mz = -ax.x * sy + ax.z * cy; // the stick, turned to the camera
+        const sp = (this.vehicle === 'airship' ? 14 : this.vehicle === 'ship' ? 9 : this.vehicle === 'dashbird' ? 10 : I.down('run') || au ? 7.6 : 5.4) * Math.max(0.45, ax.l) * dt;
+        const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), mx = au ? au.x : ax.x * cy + ax.z * sy, mz = au ? au.z : -ax.x * sy + ax.z * cy; // the stick, turned to the camera
         const before = [L.x, L.z]; this.tryMove(L, mx * sp, mz * sp);
         const moved = Math.hypot(L.x - before[0], L.z - before[1]);
         L.dir = lerpAngle(L.dir, Math.atan2(mx, mz), Math.min(1, dt * 14)); L.moving = moved > 0.0005; L.walk += moved * 0.9;

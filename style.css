@@ -263,3 +263,8 @@ body.touch #hud .mbtns button, body.touch #hud .show { height: 36px; min-width: 
 #fullmap .leg i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 3px 0 10px; vertical-align: -1px; }
 #fullmap .obj { margin: 4px 0 8px; font-size: 14px; }
 #fullmap .close { padding: 6px 20px; border-radius: 8px; border: 1px solid var(--edge); background: var(--win2); color: #fff; font: inherit; cursor: pointer; }
+/* auto-grinding: a sign at the top while it runs (tap it to stop) */
+#grind { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 40; background: rgba(20, 24, 48, .86); color: #fff; border: 2px solid #ffd24a; border-radius: 14px; padding: 6px 16px; display: flex; gap: 12px; align-items: center; font-size: 14px; cursor: pointer; box-shadow: 0 4px 16px #0006; animation: grindpulse 1.6s ease-in-out infinite; }
+#grind b { color: #ffd24a; } #grind small { opacity: .7; font-size: 12px; } #grind[hidden] { display: none; }
+@keyframes grindpulse { 50% { border-color: #fff3b0; } }
+body.inbattle #grind { top: auto; bottom: 12px; }

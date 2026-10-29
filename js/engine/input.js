@@ -2,7 +2,7 @@
 // up/down/left/right with key repeat for menus. Touch: a stick on the left half, buttons on the right.
 const keys = new Set(), edge = new Set(), held = {};
 const MAP = {
-  ok: ['KeyZ', 'Enter', 'Space', 'KeyJ'], back: ['KeyX', 'Escape', 'Backspace', 'KeyK'], menu: ['KeyC', 'Tab'], run: ['ShiftLeft', 'ShiftRight'], ride: ['KeyR'], map: ['KeyM', 'KeyN'], zin: ['Equal', 'NumpadAdd'], zout: ['Minus', 'NumpadSubtract'],
+  ok: ['KeyZ', 'Enter', 'Space', 'KeyJ'], back: ['KeyX', 'Escape', 'Backspace', 'KeyK'], menu: ['KeyC', 'Tab'], run: ['ShiftLeft', 'ShiftRight'], ride: ['KeyR'], map: ['KeyM', 'KeyN'], grind: ['KeyG'], zin: ['Equal', 'NumpadAdd'], zout: ['Minus', 'NumpadSubtract'],
   up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'], pgup: ['KeyQ', 'PageUp'], pgdn: ['KeyE', 'PageDown'],
 };
 export const I = {

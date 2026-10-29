@@ -305,7 +305,7 @@ export class BattleView {
     for (const u of r.ups) lines.push(`<div class="up">⬆ ${CHARS[u.id].n} 升到 Lv ${u.to}！${u.learned.length ? `　學會了 ${u.learned.join('、')}` : ''}</div>`);
     for (const e of r.echoUps) lines.push(`<div class="up echo">✦ 迴響「${ECHOES[e.echo].n}」升到 Lv ${e.to}${e.to >= 10 ? '（精通！）' : ''}${e.arts.length ? `　習得 ${e.arts.join('、')}` : ''}</div>`);
     if (r.ups.length) sfx('levelup');
-    return new Promise((res) => { const el = div('win results'); el.innerHTML = `<h3>勝利！</h3>${lines.join('')}<p class="more">▼</p>`; const w = { el, ok() { UI.pop(w); res(); }, back() { this.ok(); } }; el.addEventListener('click', () => w.ok()); UI.push(w); if (this.auto && !r.ups.length && !r.echoUps.length) setTimeout(() => { if (UI.stack.includes(w)) w.ok(); }, 1400); });
+    return new Promise((res) => { const el = div('win results'); el.innerHTML = `<h3>勝利！</h3>${lines.join('')}<p class="more">▼</p>`; const w = { el, ok() { UI.pop(w); res(); }, back() { this.ok(); } }; el.addEventListener('click', () => w.ok()); UI.push(w); if (this.auto && (this.grind || (!r.ups.length && !r.echoUps.length))) setTimeout(() => { if (UI.stack.includes(w)) w.ok(); }, r.ups.length || r.echoUps.length ? 2600 : 1400); });
   }
   close() { this.running = false; this.el.hidden = true; this.el.innerHTML = ''; this.fx?.clear(); this.scene?.traverse((o) => o.geometry?.dispose?.()); }
   // ---------------------------------------------------------------- the HUD

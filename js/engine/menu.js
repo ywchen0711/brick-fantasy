@@ -33,10 +33,11 @@ export async function openMenu(game) {
     side(`<div class="sum">${active().map(partyCard).join('')}<div class="gil">💰 ${s.gil.toLocaleString()} G　⏱ ${fmtTime(s.time)}　📍 ${where}</div><div class="obj">📜 ${objective()}</div></div>`);
     const canSave = game.canSave();
     const r = await UI.list([
-      { label: '物品', k: 'items' }, { label: '技能', k: 'skills' }, { label: '裝備', k: 'equip' }, { label: '迴響', k: 'echo' }, { label: '隊伍', k: 'party' }, { label: '狀態', k: 'status' }, { label: '冒險日誌', k: 'journal' }, { label: '魔物圖鑑', k: 'beasts' }, { label: '設定', k: 'opts' }, { label: '存檔', k: 'save', disabled: !canSave, help: canSave ? '' : '只能在存檔水晶旁或世界地圖上存檔' },
+      { label: '物品', k: 'items' }, { label: '技能', k: 'skills' }, { label: '裝備', k: 'equip' }, { label: '迴響', k: 'echo' }, { label: '隊伍', k: 'party' }, { label: '狀態', k: 'status' }, { label: '冒險日誌', k: 'journal' }, { label: game.grind?.on ? '停止自動練功' : '自動練功', k: 'grind', help: '自己在附近走動打魔物，受傷了會走去水晶補血（沒有水晶就喝藥水）。按任意方向鍵或 B 停止。快捷鍵：G' }, { label: '魔物圖鑑', k: 'beasts' }, { label: '設定', k: 'opts' }, { label: '存檔', k: 'save', disabled: !canSave, help: canSave ? '' : '只能在存檔水晶旁或世界地圖上存檔' },
     ], { cls: 'menu1', title: '選單', start, onMenu: () => { } });
     if (r.index < 0) break; start = r.index;
     const k = r.item.k;
+    if (k === 'grind') { side(''); document.body.classList.remove('inmenu'); setTimeout(() => game.grind.start(), 50); return; }
     try {
       if (k === 'items') await itemsMenu(game); if (k === 'skills') await skillsMenu(); if (k === 'equip') await equipMenu(); if (k === 'echo') await echoMenu(); if (k === 'party') await partyMenu(game);
       if (k === 'status') await statusMenu(); if (k === 'journal') await journalMenu(); if (k === 'beasts') await beastMenu(); if (k === 'opts') await optsMenu(); if (k === 'save') await game.saveMenu();

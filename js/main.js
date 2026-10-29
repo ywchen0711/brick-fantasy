@@ -11,6 +11,7 @@ import { wake, sfx, music, setVolume } from './engine/audio.js';
 import { G, newGame, load, active, healAll, heroStats, count, give, take, setFlag, flag, addMember } from './engine/state.js';
 import { director } from './engine/script.js';
 import { HUD } from './engine/hud.js';
+import { grinder } from './engine/grind.js';
 import { openMenu, shopMenu, saveScreen } from './engine/menu.js';
 import { MAPS, WORLD_ENC, BOUNTIES } from './data/maps.js';
 import { ENEMIES } from './data/enemies.js';
@@ -101,6 +102,7 @@ export const game = {
       const look = o.look || battleLook();
       this.mode = 'battle'; document.body.classList.add('inbattle'); transition(false);
       const r = await bv.start({ foes, boss: o.boss, canFlee: o.canFlee ?? !o.boss, look, music: o.music, preempt: o.preempt || 0, keepMusic: o.keepMusic });
+      this.grind?.fought(r);
       document.body.classList.remove('inbattle');
       if (r === 'lose') {
         if (o.canLose) { const s = JSON.parse(snap); G.s.party = s.party; healAll(); await UI.fade(true, 300); this.mode = 'field'; await UI.fade(false, 400); field.control = true; return 'lose'; }
@@ -280,7 +282,8 @@ function frame(now) {
     else if (game.mode === 'field' && !UI.busy() && !game.busy && field.control && I.hit('map')) HUD.openFull();
     else if (game.mode === 'field' && !UI.busy() && !game.busy && field.control) {
       if (I.hit('zin')) HUD.zoomBy(1); if (I.hit('zout')) HUD.zoomBy(-1);
-      if (I.hit('ok')) game.interact(); else if (I.hit('menu')) { game.busy = true; field.control = false; openMenu(game).then(() => { game.busy = false; field.control = true; }); } else if (I.hit('ride')) game.ride();
+      game.grind?.tick();
+      if (I.hit('grind')) game.grind.start(); else if (I.hit('ok')) game.interact(); else if (I.hit('menu')) { game.busy = true; field.control = false; openMenu(game).then(() => { game.busy = false; field.control = true; }); } else if (I.hit('ride')) game.ride();
     }
     if (game.mode === 'field' && G.s) G.s.time += dt;
     field.paused = HUD.full;
@@ -292,6 +295,7 @@ function frame(now) {
   I.end();
 }
 field.onStep = (d) => game.stepped(d);
+game.grind = grinder(game);
 let titleT = 0;
 function titleCam(dt) { titleT += dt; if (!field.M) return; field.camFocus = { x: field.M.W / 2 + Math.sin(titleT * 0.1) * 14, z: field.M.D / 2 + Math.cos(titleT * 0.08) * 8 }; field.camZoom = 1.3; }
 
