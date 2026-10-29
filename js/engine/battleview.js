@@ -65,7 +65,7 @@ export class BattleView {
     return res;
   }
   dom() {
-    const el = document.getElementById('battle'); el.innerHTML = `<div class="tl"></div><div class="msg"></div><div class="aname"></div><div class="tags"></div><div class="pops"></div><div class="party"></div><div class="res"><b>共鳴</b><div class="bar"><i></i><i></i><i></i></div></div><div class="btools"><button class="auto">自動</button><button class="fast">加速</button></div>`; el.hidden = false;
+    const el = document.getElementById('battle'); el.innerHTML = `<div class="tl"></div><div class="msg"></div><div class="aname"></div><div class="tags"></div><div class="pops"></div><div class="party"></div><div class="res"><b>共鳴</b><div class="bar"><i></i><i></i><i></i></div></div><div class="btools"><button class="auto"><kbd class="pk">LB</kbd>自動</button><button class="fast"><kbd class="pk">RB</kbd>加速</button></div>`; el.hidden = false;
     this.el = el; this.tagEls = new Map();
     el.querySelector('.auto').onclick = (e) => { e.stopPropagation(); this.auto = !this.auto; this.toolDraw(); if (this.auto) this.menuW?.close(); };
     el.querySelector('.fast').onclick = (e) => { e.stopPropagation(); this.speed = this.speed > 1 ? 1 : 2; this.toolDraw(); };
@@ -243,14 +243,14 @@ export class BattleView {
     if (e.mpHeal != null) { this.pop(t, `MP ${e.mpHeal}`, 'mp'); this.drawParty(); return; }
     if (e.dmg != null) {
       this.pop(t, e.dmg, e.crit ? 'crit' : e.weak ? 'weak' : e.resist ? 'res' : t.side === 'h' ? 'hurt' : 'dmg', e.weak ? '弱點！' : e.crit ? '會心！' : e.resist ? (e.dmg === 0 ? '無效' : '抵抗') : '');
-      if (e.weak) sfx('weak'); if (e.crit) sfx('crit');
+      if (e.weak) sfx('weak'); if (e.crit) { sfx('crit'); I.rumble(90, 0.5, 0.3); } if (t.side === 'h' && e.dmg > t.maxhp * 0.25) I.rumble(160, 0.8, 0.5);
       if (e.el !== 'poison' && e.el !== 'cost') { v.hurt = 1; if (t.side === 'h') this.shake(0.15, 0.06); }
       if (e.weak && t.side === 'f') { this.flashTag(t); }
       this.drawParty(); this.drawTag(t);
     }
   }
   async showStagger(t) {
-    const v = this.views.get(t.uid); sfx('brk'); this.shake(0.4, 0.18); v.stag = true;
+    const v = this.views.get(t.uid); sfx('brk'); this.shake(0.4, 0.18); v.stag = true; I.rumble(260, 0.9, 0.6);
     this.fx.burst(this.mid(v), ['#ffffff', '#ffe24a', '#7af0ff'], { n: 60, speed: 6, size: 0.12, life: 0.8 }); this.fx.glow(this.mid(v), '#ffffff', { size: 4, life: 0.35 }); this.fx.ring(v3(v.pos.x, 0.05, v.pos.z), '#ffe24a', { r: 3 });
     this.big('BREAK!', t); this.drawTag(t); await wait(650 / this.speed);
   }
@@ -262,7 +262,7 @@ export class BattleView {
   async bossLine(u, say) { const n = say.startsWith('「') ? u.n : ''; await UI.say(n, say, { top: true, auto: 2600 / this.speed }); }
   // a resonance art: the echo's ghost rises behind the hero, the screen dims, the name in big letters
   async ultCinematic(u, echoes, p) {
-    const v = this.views.get(u.uid); sfx('ult'); const ghosts = [];
+    const v = this.views.get(u.uid); sfx('ult'); I.rumble(500, 0.7, 0.7); const ghosts = [];
     echoes.forEach((id, i) => {
       const e = ECHOES[id], host = i === 0 ? v : this.views.get(p?.uid); if (!e || !host) return;
       const F = npcFig(e.spec, {});
@@ -343,6 +343,7 @@ export class BattleView {
   // ---------------------------------------------------------------- every frame
   update(dt) {
     if (!this.scene) return; this.camT += dt;
+    if (this.running && this.el) { if (I.hit('pgup')) { this.auto = !this.auto; this.toolDraw(); if (this.auto) this.menuW?.close(); } if (I.hit('pgdn')) { this.speed = this.speed > 1 ? 1 : 2; this.toolDraw(); } }
     for (let i = this.tweens.length - 1; i >= 0; i--) { const tw = this.tweens[i]; tw.t += dt; const k = Math.min(1, tw.t / tw.dur); tw.fn(k); if (k >= 1) { this.tweens.splice(i, 1); tw.res(); } }
     const t = this.camT;
     for (const v of this.views.values()) {

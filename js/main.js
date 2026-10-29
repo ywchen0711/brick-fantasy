@@ -93,7 +93,7 @@ export const game = {
     if (typeof foes === 'string') foes = parseGroup(foes);
     const snap = JSON.stringify({ party: G.s.party, inv: G.s.inv, gil: G.s.gil });
     for (;;) {
-      this.mode = 'busy'; field.control = false; sfx('encounter');
+      this.mode = 'busy'; field.control = false; sfx('encounter'); I.rumble(200, 0.4, 0.6);
       await transition(true);
       const look = o.look || battleLook();
       this.mode = 'battle'; document.body.classList.add('inbattle'); transition(false);
@@ -280,7 +280,7 @@ function frame(now) {
     field.runTasks(dt); field.update(dt); field.render();
     for (let i = game.emotes.length - 1; i >= 0; i--) { const e = game.emotes[i]; e.t += dt; const p = new THREE.Vector3(e.a.x * 0.6, (e.a.y + 3.4) * 0.6, e.a.z * 0.6).project(field.cam); e.el.style.left = (p.x + 1) / 2 * innerWidth + 'px'; e.el.style.top = (1 - p.y) / 2 * innerHeight + 'px'; if (e.t > 1) { e.el.remove(); game.emotes.splice(i, 1); } }
   } else if (game.mode === 'battle') { bv.update(dt); bv.render(); }
-  else if (game.mode === 'title') { field.update(dt); titleCam(dt); field.render(); }
+  else if (game.mode === 'title') { game.titleTick?.(); field.update(dt); titleCam(dt); field.render(); }
   I.end();
 }
 field.onStep = (d) => game.stepped(d);
@@ -297,10 +297,11 @@ async function title() {
   const hasSave = [1, 2, 3].some((k) => localStorage.getItem('brickfantasy.slot' + k));
   el.querySelector('.cont').disabled = !hasSave;
   const go = (k) => new Promise((res) => { el.querySelector('.new').onclick = () => res('new'); el.querySelector('.cont').onclick = () => res('cont'); el.onkeydown = null; });
-  const keyWatch = setInterval(() => { if (I.hit('ok')) el.querySelector(hasSave ? '.cont' : '.new').click(); }, 50);
+  let pick = hasSave ? 1 : 0; const btns = [el.querySelector('.new'), el.querySelector('.cont')]; const mark = () => btns.forEach((b, i) => b.classList.toggle('on', i === pick)); mark();
+  game.titleTick = () => { if (el.hidden) return; const n = I.nav(performance.now() / 1000); if ((n === 'up' || n === 'down') && hasSave) { pick = 1 - pick; mark(); sfx('tick'); } if (I.hit('ok')) btns[pick].click(); };
   addEventListener('pointerdown', () => { wake(); music('title'); }, { once: true }); addEventListener('keydown', () => { wake(); music('title'); }, { once: true });
   for (;;) {
-    const c = await go(); clearInterval(keyWatch); wake();
+    const c = await go(); wake();
     if (c === 'new') { el.hidden = true; newGame(); applyOpts(); field.camFocus = null; field.camZoom = 1; game.mode = 'field'; await storyStart(D); return; }
     el.hidden = true; const slot = await saveScreen({ load: true });
     if (!slot) { el.hidden = false; continue; }
@@ -310,6 +311,8 @@ async function title() {
 }
 function applyOpts() { const o = G.s.opts; setVolume('bgm', o.bgm); setVolume('sfx', o.sfx); UI.speed = [1, 2, 4, 99][o.msg ?? 1]; document.body.classList.toggle('nodof', !o.dof); }
 setupTouch();
+I.onPad = (g, on) => { UI.toast(on ? '🎮 已連接手把：A 確定・B 取消・Y 選單・X 跑步・Select 奔奔鳥' : '🎮 手把已中斷連接'); if (on) I.usingPad(true); };
+I.onMode = (pad) => { const h = document.querySelector('#title .hint'); if (h) h.textContent = pad ? '🎮 左搖桿／十字鍵 移動・A 確定・B 取消・Y 選單・X 跑步・Select 奔奔鳥' : '方向鍵／WASD 移動・Z／Enter 確定・X／Esc 取消・C 選單・手機可直接觸控'; };
 requestAnimationFrame(frame);
 title().catch((e) => { console.error(e); document.getElementById('loading').innerHTML = '<p style="color:#fff">載入失敗：' + e.message + '</p>'; });
 window.GAME = { game, G, field, bv, D, MAPS };

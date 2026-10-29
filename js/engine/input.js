@@ -27,22 +27,38 @@ export const I = {
   },
   end() { edge.clear(); this.tedge.clear(); this.gpEdge?.clear(); },
   any() { return keys.size > 0 || this.tbtn.size > 0; },
+  // the gamepad (standard layout): A ok, B back, X run, Y / Start menu, Select ride, LB / RB page (in battle:
+  // auto and fast), LT / RT run, d-pad and left stick move. Any connected pad works; the first with input wins.
   poll() {
-    const pads = navigator.getGamepads ? navigator.getGamepads() : []; const p = [...pads].find((g) => g && g.connected);
     this.gpHeld ||= new Set(); this.gpEdge ||= new Set();
-    if (!p) { this.gp.x = this.gp.z = 0; this.gpHeld.clear(); return; }
-    this.gp.x = p.axes[0] || 0; this.gp.z = p.axes[1] || 0;
-    const B = (i) => p.buttons[i]?.pressed;
-    const now = new Set(); if (B(0)) now.add('ok'); if (B(1)) now.add('back'); if (B(3) || B(9)) now.add('menu'); if (B(2)) now.add('run'); if (B(12)) now.add('up'); if (B(13)) now.add('down'); if (B(14)) now.add('left'); if (B(15)) now.add('right'); if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8)) now.add('ride');
+    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter((g) => g && g.connected) : [];
+    if (!pads.length) { this.gp.x = this.gp.z = 0; this.gpHeld.clear(); this.pad = null; return; }
+    const p = pads.find((g) => g.buttons.some((b) => b.pressed) || Math.hypot(g.axes[0] || 0, g.axes[1] || 0) > 0.3) || this.pad && pads.find((g) => g.index === this.pad.index) || pads[0];
+    this.pad = p;
+    let x = p.axes[0] || 0, z = p.axes[1] || 0; const l = Math.hypot(x, z);
+    if (l < 0.22) { x = 0; z = 0; } else { const k = Math.min(1, (l - 0.22) / 0.7) / l; x *= k; z *= k; } // a round dead zone, scaled
+    this.gp.x = x; this.gp.z = z;
+    const B = (i) => !!p.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > 0.5);
+    const now = new Set();
+    if (B(0)) now.add('ok'); if (B(1)) now.add('back'); if (B(3) || B(9)) now.add('menu'); if (B(2) || B(6) || B(7)) now.add('run');
+    if (B(12)) now.add('up'); if (B(13)) now.add('down'); if (B(14)) now.add('left'); if (B(15)) now.add('right');
+    if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8) || B(10)) now.add('ride');
     for (const a of now) if (!this.gpHeld.has(a)) this.gpEdge.add(a);
+    if (now.size || l > 0.3) this.usingPad(true);
     this.gpHeld = now;
   },
+  // show controller prompts once a pad is used; back to keyboard / touch prompts when those are used
+  usingPad(on) { if (this.padMode === on) return; this.padMode = on; document.body.classList.toggle('pad', on); this.onMode?.(on); },
+  // a short shake of the pad (if it can)
+  rumble(ms = 120, strong = 0.6, weak = 0.4) { const a = this.pad?.vibrationActuator; if (!a || this.noRumble) return; try { a.playEffect?.('dual-rumble', { duration: ms, strongMagnitude: strong, weakMagnitude: weak }); } catch (e) { } },
   // touch buttons press an action
   press(a, on) { if (on) { if (!this.tbtn.has(a)) this.tedge.add(a); this.tbtn.add(a); } else this.tbtn.delete(a); },
 };
-addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; if (!keys.has(e.code)) edge.add(e.code); keys.add(e.code); if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault(); });
+addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; I.usingPad(false); if (!keys.has(e.code)) edge.add(e.code); keys.add(e.code); if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.code)) e.preventDefault(); });
 addEventListener('keyup', (e) => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
+addEventListener('gamepadconnected', (e) => { I.onPad?.(e.gamepad, true); });
+addEventListener('gamepaddisconnected', (e) => { I.onPad?.(e.gamepad, false); });
 
 // ---------------------------------------------------------------- the touch stick and buttons
 export function setupTouch() {
