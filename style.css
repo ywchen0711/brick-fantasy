@@ -226,3 +226,8 @@ kbd.pk { display: none; font: 800 10px sans-serif; background: #e8ecf8; color: #
 body.pad kbd.pk { display: inline-block; }
 body.pad #tbtns, body.pad #stick { display: none !important; }
 #title button.on { background: var(--win2); border-color: var(--gold); box-shadow: 0 0 16px rgba(255,216,74,.5); }
+
+/* a foe's line in battle: a small box under the timeline, not the story's big window */
+.say.mini { top: 50px; width: min(480px, 86vw); min-height: 0; padding: 12px 18px 10px; font-size: 15px; line-height: 1.5; }
+.say.mini .nm { top: -13px; font-size: 13px; padding: 1px 10px; }
+.say.mini .more { display: none; }

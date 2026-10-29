@@ -259,7 +259,7 @@ export class BattleView {
     if (t.side === 'f') { sfx('bricks'); this.fx.shatter(v.root, 1.3); this.tagEls.get(t.uid)?.remove(); this.tagEls.delete(t.uid); await wait(300 / this.speed); }
     else { sfx('ko'); v.ko = true; this.pop(t, '倒下了', 'bad'); this.drawParty(); await wait(400 / this.speed); }
   }
-  async bossLine(u, say) { const n = say.startsWith('「') ? u.n : ''; await UI.say(n, say, { top: true, auto: 2600 / this.speed }); }
+  async bossLine(u, say) { const n = say.startsWith('「') ? u.n : ''; await UI.say(n, say, { top: true, mini: true, auto: 2400 / this.speed }); }
   // a resonance art: the echo's ghost rises behind the hero, the screen dims, the name in big letters
   async ultCinematic(u, echoes, p) {
     const v = this.views.get(u.uid); sfx('ult'); I.rumble(500, 0.7, 0.7); const ghosts = [];

@@ -20,7 +20,7 @@ export const UI = {
   // ---------------------------------------------------------------- speech: resolves when read
   say(name, text, o = {}) {
     return new Promise((res) => {
-      const el = div('win say' + (o.top ? ' top' : '') + (o.sys ? ' sys' : '')); el.innerHTML = (name ? `<b class="nm" style="${o.color ? 'background:' + o.color : ''}">${name}</b>` : '') + '<p></p><i class="more">▼</i>';
+      const el = div('win say' + (o.top ? ' top' : '') + (o.sys ? ' sys' : '') + (o.mini ? ' mini' : '')); el.innerHTML = (name ? `<b class="nm" style="${o.color ? 'background:' + o.color : ''}">${name}</b>` : '') + '<p></p><i class="more">▼</i>';
       const p = el.querySelector('p'); let shown = 0, done = false; const full = String(text);
       const w = { el, update(dt) { if (done) return; shown += dt * 40 * UI.speed; const n = Math.floor(shown); p.innerHTML = fmt(full.slice(0, n)); if (n % 3 === 0 && n !== this.last) { this.last = n; if (!o.sys) sfx('blip'); } if (n >= full.length) { done = true; p.innerHTML = fmt(full); el.classList.add('done'); } },
         ok() { if (!done) { shown = 1e9; return; } UI.pop(w); sfx('tick'); res(); }, back() { this.ok(); } };
