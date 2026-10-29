@@ -1,0 +1,11 @@
+import { genTown, genField, genDungeon, genRoom } from '../js/engine/mapgen.js';
+import { genWorld } from '../js/engine/worldgen.js';
+const show = (M, step = 1) => { let out = ''; for (let z = 0; z < M.D; z += step) { let l = ''; for (let x = 0; x < M.W; x += step) { const f = M.flags[M.i(x, z)], h = M.floorH[M.i(x, z)]; l += f & 1 ? '#' : f & 2 ? '~' : f & 16 ? '^' : f & 4 ? '.' : h > 3 ? String(Math.min(9, h - 3)) : ' '; } out += l + '\n'; } return out; };
+const t0 = Date.now();
+const T = genTown({ id: 'whitehawk', theme: 'whitehawk', W: 56, D: 48, shops: { inn: 1, item: 1, weapon: 1, armor: 1, board: 1, church: 1 }, castle: { to: 'castle', at: 'door' }, exits: { s: { to: 'world', at: 'whitehawk' } } });
+console.log(show(T)); console.log(Object.keys(T.spots).join(' '), Date.now() - t0);
+const F = genField({ id: 'windcanyon', theme: 'canyon', W: 48, D: 72, exits: { s: { to: 'world', at: 'windcanyon' }, n: { to: 'world', at: 'windtemple' } }, chests: 3 });
+console.log(show(F));
+const Dg = genDungeon({ id: 'windtemple1', theme: 'windtemple', cols: 4, rows: 3, up: { to: 'world', at: 'windtemple' }, boss: true, chests: 3 });
+console.log(show(Dg)); console.log(Object.keys(Dg.spots).join(' '));
+const t1 = Date.now(); const Wm = genWorld({ id: 'world' }, {}); console.log('world ms', Date.now() - t1); console.log(show(Wm, 2));

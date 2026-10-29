@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>積木幻想：晶之迴響</title>
+  <meta name="description" content="積木風格的回合制 RPG：打弱點破防、額外回合、共鳴技與迴響（英雄之魂）職業系統，十二章劇情、飛空艇、懸賞與晶獸。">
+  <meta name="theme-color" content="#1a2a5a">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+  <canvas id="cv"></canvas>
+  <div id="tilt"><i class="t"></i><i class="b"></i></div>
+  <div id="loading"><div class="lt"><small>BRICK FANTASY</small>積木幻想<b>晶之迴響</b></div><div class="spin"></div><p>水晶正在歌唱…</p></div>
+  <div id="title" hidden>
+    <div class="logo"><small>BRICK FANTASY</small><b>積木幻想</b><i>晶之迴響</i></div>
+    <div class="btns"><button class="new">新的冒險</button><button class="cont">繼續冒險</button></div>
+    <p class="hint">方向鍵／WASD 移動・Z／Enter 確定・X／Esc 取消・C 選單・手機可直接觸控</p>
+  </div>
+  <div id="battle" hidden></div>
+  <div id="side" hidden></div>
+  <div id="ui"></div>
+  <div id="ui2"></div>
+  <div id="toasts"></div>
+  <div id="area"></div>
+  <div id="banner"></div>
+  <div id="dim"></div>
+  <div id="swirl"></div>
+  <div id="flash"></div>
+  <div id="fade"></div>
+  <div id="stick" hidden><i id="knob"></i></div>
+  <div id="tbtns"><button data-act="menu" class="tm">選單</button><button data-act="ride" class="tr">🐤</button><button data-act="back" class="tb">B</button><button data-act="ok" class="ta">A</button></div>
+  <script type="module" src="js/main.js?v=1"></script>
+  <script src="/hub.js" defer data-pos="top-left"></script>
+</body>
+</html>
