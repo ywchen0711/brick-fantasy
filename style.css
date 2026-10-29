@@ -231,3 +231,22 @@ body.pad #tbtns, body.pad #stick { display: none !important; }
 .say.mini { top: 50px; width: min(480px, 86vw); min-height: 0; padding: 12px 18px 10px; font-size: 15px; line-height: 1.5; }
 .say.mini .nm { top: -13px; font-size: 13px; padding: 1px 10px; }
 .say.mini .more { display: none; }
+
+/* the corner while walking: place, next step, minimap */
+#hud { position: fixed; right: 12px; top: 12px; z-index: 12; width: 230px; display: grid; justify-items: end; gap: 6px; pointer-events: none; }
+#hud .where { font: 900 17px "Noto Serif TC", serif; letter-spacing: .1em; text-shadow: 0 2px 6px #000, 0 0 2px #000; border-bottom: 2px solid var(--gold); padding-bottom: 2px; }
+#hud .next { font-size: 13px; line-height: 1.45; text-align: right; background: rgba(14, 26, 66, .72); border: 1px solid rgba(255,255,255,.3); border-radius: 10px; padding: 6px 10px; text-shadow: 0 1px 2px #000; }
+#hud .next::before { content: '📜 '; }
+#hud .mini { border: 2px solid var(--edge); border-radius: 8px; background: #0a1024; box-shadow: 0 4px 14px rgba(0,0,0,.5); pointer-events: auto; cursor: pointer; image-rendering: pixelated; }
+#hud.big { width: 300px; }
+body.inbattle #hud, body.inmenu #hud { display: none; }
+#area { top: 18px; }
+@media (max-width: 760px) { #hud { width: 170px; top: 8px; right: 8px; } #hud .next { font-size: 11px; } #hud.big { width: 270px; } }
+body.touch #hud { top: 8px; }
+
+#side .jr h3 { margin: 2px 0 8px; color: var(--gold); font-size: 18px; }
+#side .jr small { color: #9ae8ff; letter-spacing: .2em; }
+#side .jr p { margin: 0 0 8px; }
+#side .jr .goal { font-size: 16px; color: #fff; }
+#side .jr .tip { color: var(--dim); font-size: 12px; }
+#side .jr blockquote { margin: 8px 0 0; padding: 8px 12px; border-left: 3px solid var(--gold); background: rgba(255,255,255,.05); color: #ffe8b0; font-style: italic; }

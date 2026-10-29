@@ -8,7 +8,7 @@ import { ECHOES, ECHO_EP, echoLevel } from '../data/echoes.js';
 import { ITEMS } from '../data/items.js';
 import { skill, EL, ST_NAME } from '../data/skills.js';
 import { ENEMIES, stat } from '../data/enemies.js';
-import { QUESTS, objective } from '../story/journal.js';
+import { QUESTS, STORY, PEOPLE, objective } from '../story/journal.js';
 
 const STATN = { hp: 'HP', mp: 'MP', atk: '攻擊', def: '防禦', mag: '魔力', spr: '精神', spd: '速度', luk: '幸運' };
 const EL_ICON = { fire: '🔥', ice: '❄️', thunder: '⚡', water: '💧', wind: '🌪️', earth: '🪨', light: '✨', dark: '🌑', slash: '🗡️', pierce: '🔱', strike: '🔨', shot: '🏹', none: '◎' };
@@ -164,7 +164,33 @@ async function statusMenu() {
 }
 // ---------------------------------------------------------------- journal and bestiary
 async function journalMenu() {
-  const qs = QUESTS.filter((q) => q.show()), r = await UI.list([{ label: '📜 主線：' + objective(), help: objective() }].concat(qs.map((q) => ({ label: (q.done() ? '✅ ' : '⬜ ') + q.n, help: q.d + (q.done() ? '<br>（已完成）' : q.hint ? `<br>提示：${q.hint()}` : '') }))), { title: '冒險日誌', cls: 'menu2 wide' });
+  let start = 0;
+  for (;;) {
+    const story = STORY.filter(([f]) => G.s.flags[f]), people = PEOPLE.filter((p) => p[3]()), qs = QUESTS.filter((q) => q.show());
+    side(`<div class="jr"><h3>📜 現在要做的事</h3><p class="goal">${objective()}</p><p class="tip">右上角的小地圖上，紅色菱形是目的地，黃色是出入口，藍色是存檔水晶，金色是寶箱，黃點是有事找你的人。（N 鍵或點小地圖切換大小）</p></div>`);
+    const r = await UI.list([
+      { label: '📜 現在要做的事', k: 'goal', help: objective() },
+      { label: `📖 故事回顧（${story.length}）`, k: 'story', help: '到目前為止發生的事和重要的對話' },
+      { label: `👥 人物介紹（${people.length}）`, k: 'people', help: '夥伴和遇到的重要人物' },
+      { label: `📋 支線任務（${qs.filter((q) => q.done()).length}/${qs.length}）`, k: 'quests', help: '城鎮的人們拜託的事' },
+    ], { title: '冒險日誌', cls: 'menu2', start });
+    if (r.index < 0) return; start = r.index;
+    if (r.item.k === 'story') {
+      if (!story.length) { UI.toast('還沒有記錄'); continue; }
+      const rev = story.slice().reverse();
+      const card = (e) => `<div class="jr"><small>${e[1]}</small><h3>${e[2]}</h3><p>${e[3]}</p>${e[4] ? `<blockquote>${e[4]}</blockquote>` : ''}</div>`;
+      await UI.list(rev.map((e) => ({ label: e[2], sub: e[1] })), { title: '故事回顧（最新的在上面）', cls: 'menu2', onMove: (k) => side(card(rev[k])) });
+    }
+    if (r.item.k === 'people') {
+      const val = (x) => (typeof x === 'function' ? x() : x); const card = (p) => `<div class="jr"><small>${val(p[2])}</small><h3>${val(p[1])}</h3><p>${p[4]()}</p>${G.s.members.includes(p[0]) ? `<p class="tip">隊伍成員・Lv ${G.s.party[p[0]].lv}</p>` : ''}</div>`;
+      await UI.list(people.map((p) => ({ label: val(p[1]), sub: val(p[2]) })), { title: '人物介紹', cls: 'menu2', onMove: (k) => side(card(people[k])) });
+    }
+    if (r.item.k === 'quests') {
+      if (!qs.length) { UI.toast('還沒有支線任務。和城鎮裡頭上有「!」的人說說話吧'); continue; }
+      const card = (q) => `<div class="jr"><h3>${q.done() ? '✅ ' : ''}${q.n}</h3><p>${q.d}</p>${q.done() ? '<p class="tip">已完成</p>' : q.hint ? `<p class="tip">提示：${q.hint()}</p>` : ''}</div>`;
+      await UI.list(qs.map((q) => ({ label: (q.done() ? '✅ ' : '⬜ ') + q.n })), { title: '支線任務', cls: 'menu2', onMove: (k) => side(card(qs[k])) });
+    }
+  }
 }
 async function beastMenu() {
   const list = Object.values(ENEMIES).filter((e) => G.s.seen[e.id]);

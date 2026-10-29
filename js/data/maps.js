@@ -9,7 +9,7 @@ const R = (id, o) => { M[id] = { id, kind: 'room', ...o }; };
 function DG(id, n, o) {
   for (let i = 1; i <= n; i++) {
     const f = { ...o, ...(o.floors?.[i] || {}) }; delete f.floors;
-    M[id + i] = { id: id + i, kind: 'dungeon', name: `${o.name} ${n > 1 ? i + 'F' : ''}`.trim(), floor: i, ...f,
+    M[id + i] = { id: id + i, kind: 'dungeon', floor: i, ...f, name: `${o.name} ${n > 1 ? i + 'F' : ''}`.trim(),
       up: i === 1 ? o.entry : { to: id + (i - 1), at: 'down' }, down: i < n ? { to: id + (i + 1), at: 'up' } : null, boss: f.boss ?? (i === n && o.boss !== false), seed: (o.seed || 0) + i * 17 };
   }
 }

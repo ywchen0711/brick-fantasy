@@ -10,6 +10,7 @@ import { UI, wait } from './engine/ui.js';
 import { wake, sfx, music, setVolume } from './engine/audio.js';
 import { G, newGame, load, active, healAll, heroStats, count, give, take, setFlag, flag, addMember } from './engine/state.js';
 import { director } from './engine/script.js';
+import { HUD } from './engine/hud.js';
 import { openMenu, shopMenu, saveScreen } from './engine/menu.js';
 import { MAPS, WORLD_ENC, BOUNTIES } from './data/maps.js';
 import { ENEMIES } from './data/enemies.js';
@@ -45,6 +46,7 @@ export const game = {
     field.camOff = field.baseCam(field.vehicle);
     this.mapContent(M, def);
     field.setParty(M.world || def.kind === 'room' && def.solo ? active().slice(0, 1) : active(), x, z, dir);
+    HUD.show(M, def.name);
     if (field.vehicle) for (const p of field.party.slice(1)) p.root.visible = false;
     G.s.map = { id, x, z, dir, at };
     this.lastCell = `${x},${z}`; this.encLeft = this.nextEnc();
@@ -279,8 +281,9 @@ function frame(now) {
     }
     if (game.mode === 'field' && G.s) G.s.time += dt;
     field.runTasks(dt); field.update(dt); field.render();
+    HUD.visible(!document.body.classList.contains('inmenu')); HUD.update(dt, field); if (I.hit('map') && !UI.busy()) HUD.cycle();
     for (let i = game.emotes.length - 1; i >= 0; i--) { const e = game.emotes[i]; e.t += dt; const p = new THREE.Vector3(e.a.x * 0.6, (e.a.y + 3.4) * 0.6, e.a.z * 0.6).project(field.cam); e.el.style.left = (p.x + 1) / 2 * innerWidth + 'px'; e.el.style.top = (1 - p.y) / 2 * innerHeight + 'px'; if (e.t > 1) { e.el.remove(); game.emotes.splice(i, 1); } }
-  } else if (game.mode === 'battle') { bv.update(dt); bv.render(); }
+  } else if (game.mode === 'battle') { HUD.visible(false); bv.update(dt); bv.render(); }
   else if (game.mode === 'title') { game.titleTick?.(); field.update(dt); titleCam(dt); field.render(); }
   I.end();
 }
