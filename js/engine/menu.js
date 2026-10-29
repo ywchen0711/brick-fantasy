@@ -1,6 +1,7 @@
 // The field menu (items, arts, gear, echoes, party order, status, journal, bestiary, settings, save) and the shop,
 // the inn and the save screen.
 import { UI, div } from './ui.js';
+import { I } from './input.js';
 import { sfx, setVolume } from './audio.js';
 import { G, active, heroStats, heroSkills, artSlots, masteredArts, equipEcho, canEquip, equip, count, give, take, save, peek, clampHP } from './state.js';
 import { CHARS, xpFor } from '../data/chars.js';
@@ -201,11 +202,12 @@ async function beastMenu() {
 async function optsMenu() {
   for (;;) {
     const o = G.s.opts, D = ['簡單', '普通', '困難'], E = ['少', '普通', '多'];
-    const r = await UI.list([{ label: '文字速度', right: ['慢', '普通', '快', '瞬間'][o.msg] , k: 'msg' }, { label: '背景音樂', right: Math.round(o.bgm * 10), k: 'bgm' }, { label: '音效', right: Math.round(o.sfx * 10), k: 'sfx' }, { label: '難度', right: D[o.diff ?? 1], k: 'diff', help: '敵人的傷害：簡單 75%、普通 100%、困難 125%' }, { label: '遇敵率', right: E[o.enc ?? 1], k: 'enc' }, { label: '景深效果', right: o.dof ? '開' : '關', k: 'dof' }], { title: '設定　（左右鍵或點選調整）', cls: 'menu2', onSide: (d, k) => { } });
+    const r = await UI.list([{ label: '文字速度', right: ['慢', '普通', '快', '瞬間'][o.msg] , k: 'msg' }, { label: '背景音樂', right: Math.round(o.bgm * 10), k: 'bgm' }, { label: '音效', right: Math.round(o.sfx * 10), k: 'sfx' }, { label: '難度', right: D[o.diff ?? 1], k: 'diff', help: '敵人的傷害：簡單 75%、普通 100%、困難 125%' }, { label: '遇敵率', right: E[o.enc ?? 1], k: 'enc' }, { label: '景深效果', right: o.dof ? '開' : '關', k: 'dof' }, { label: '手把', right: o.pad === 0 ? '關' : '開', k: 'pad', help: '如果角色或選單自己一直移動，可能是電腦上的某個裝置被當成了手把，把這裡關掉就好' }], { title: '設定　（左右鍵或點選調整）', cls: 'menu2', onSide: (d, k) => { } });
     if (r.index < 0) return;
     const k = r.item.k;
     if (k === 'msg') o.msg = (o.msg + 1) % 4; if (k === 'bgm') { o.bgm = Math.round(((o.bgm * 10 + 1) % 11)) / 10; setVolume('bgm', o.bgm); } if (k === 'sfx') { o.sfx = Math.round(((o.sfx * 10 + 1) % 11)) / 10; setVolume('sfx', o.sfx); }
     if (k === 'diff') o.diff = ((o.diff ?? 1) + 1) % 3; if (k === 'enc') o.enc = ((o.enc ?? 1) + 1) % 3; if (k === 'dof') { o.dof = o.dof ? 0 : 1; document.body.classList.toggle('nodof', !o.dof); }
+    if (k === 'pad') { o.pad = o.pad === 0 ? 1 : 0; I.padOff = o.pad === 0; if (I.padOff) I.usingPad(false); }
     UI.speed = [1, 2, 4, 99][o.msg];
   }
 }

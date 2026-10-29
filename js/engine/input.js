@@ -31,21 +31,33 @@ export const I = {
   // the gamepad (standard layout): A ok, B back, X run, Y / Start menu, Select ride, LB / RB page (in battle:
   // auto and fast), LT / RT run, d-pad and left stick move. Any connected pad works; the first with input wins.
   poll() {
-    this.gpHeld ||= new Set(); this.gpEdge ||= new Set();
-    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter((g) => g && g.connected) : [];
+    this.gpHeld ||= new Set(); this.gpEdge ||= new Set(); this.rest ||= new Map();
+    const pads = !this.padOff && navigator.getGamepads ? [...navigator.getGamepads()].filter((g) => g && g.connected) : [];
     if (!pads.length) { this.gp.x = this.gp.z = 0; this.gpLook.x = this.gpLook.z = 0; this.gpHeld.clear(); this.pad = null; return; }
-    const p = pads.find((g) => g.buttons.some((b) => b.pressed) || Math.hypot(g.axes[0] || 0, g.axes[1] || 0) > 0.3) || this.pad && pads.find((g) => g.index === this.pad.index) || pads[0];
-    this.pad = p;
-    let x = p.axes[0] || 0, z = p.axes[1] || 0; const l = Math.hypot(x, z);
-    if (l < 0.22) { x = 0; z = 0; } else { const k = Math.min(1, (l - 0.22) / 0.7) / l; x *= k; z *= k; } // a round dead zone, scaled
+    // each device's resting state, learned the first time it is seen: an axis that rests far from the middle (a
+    // trigger, a stuck or odd axis) is measured from where it rests, and a button that is already down is not
+    // counted until it has been let go once. So a device that sits "pressed" never moves the party.
+    const read = (g) => {
+      const key = g.index + ':' + g.id; let R = this.rest.get(key);
+      if (!R) { R = { axes: g.axes.map((v) => (Math.abs(v) > 0.5 ? v : 0)), held: g.buttons.map((b) => b.pressed || b.value > 0.5) }; this.rest.set(key, R); }
+      const ax = (i) => { const v = (g.axes[i] || 0) - (R.axes[i] || 0); return Math.max(-1, Math.min(1, v)); };
+      const btn = (i) => { const b = g.buttons[i]; const on = !!b && (b.pressed || b.value > 0.5); if (!on) R.held[i] = false; return on && !R.held[i]; };
+      return { ax, btn, n: g.buttons.length };
+    };
+    const live = pads.map((g) => ({ g, r: read(g) }));
+    const active = (e) => { for (let i = 0; i < e.r.n; i++) if (e.r.btn(i)) return true; return Math.hypot(e.r.ax(0), e.r.ax(1)) > 0.3; };
+    const cur = live.find(active) || (this.pad && live.find((e) => e.g.index === this.pad.index)) || live[0];
+    const p = cur.g, A = cur.r.ax, B = cur.r.btn; this.pad = p;
+    const std = p.mapping === 'standard';
+    let x = A(0), z = A(1); const l = Math.hypot(x, z);
+    if (l < 0.25) { x = 0; z = 0; } else { const k = Math.min(1, (l - 0.25) / 0.7) / l; x *= k; z *= k; } // a round dead zone, scaled
     this.gp.x = x; this.gp.z = z;
-    let rx = p.axes[2] || 0, rz = p.axes[3] || 0; const rl = Math.hypot(rx, rz); if (rl < 0.2) { rx = 0; rz = 0; } this.gpLook.x = rx; this.gpLook.z = rz;
-    if (p.buttons[11]?.pressed && !this.r3) this.lookAcc.reset = true; this.r3 = !!p.buttons[11]?.pressed;
-    const B = (i) => !!p.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > 0.5);
+    let rx = std ? A(2) : 0, rz = std ? A(3) : 0; if (Math.hypot(rx, rz) < 0.25) { rx = 0; rz = 0; } this.gpLook.x = rx; this.gpLook.z = rz;
+    const r3 = std && B(11); if (r3 && !this.r3) this.lookAcc.reset = true; this.r3 = r3;
     const now = new Set();
-    if (B(0)) now.add('ok'); if (B(1)) now.add('back'); if (B(3) || B(9)) now.add('menu'); if (B(2) || B(6) || B(7)) now.add('run');
-    if (B(12)) now.add('up'); if (B(13)) now.add('down'); if (B(14)) now.add('left'); if (B(15)) now.add('right');
-    if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8)) now.add('ride'); if (B(10)) now.add('map');
+    if (B(0)) now.add('ok'); if (B(1)) now.add('back'); if (B(3) || B(9)) now.add('menu'); if (B(2) || (std && (B(6) || B(7)))) now.add('run');
+    if (std) { if (B(12)) now.add('up'); if (B(13)) now.add('down'); if (B(14)) now.add('left'); if (B(15)) now.add('right'); if (B(10)) now.add('map'); }
+    if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8)) now.add('ride');
     for (const a of now) if (!this.gpHeld.has(a)) this.gpEdge.add(a);
     if (now.size || l > 0.3) this.usingPad(true);
     this.gpHeld = now;
@@ -66,7 +78,7 @@ addEventListener('mousemove', (e) => { if (!drag) return; I.lookAcc.dx += e.clie
 addEventListener('mouseup', () => { drag = null; });
 addEventListener('wheel', (e) => { if (e.target.id !== 'cv') return; I.lookAcc.zoom += e.deltaY; }, { passive: true });
 addEventListener('dblclick', (e) => { if (e.target.id === 'cv') I.lookAcc.reset = true; });
-addEventListener('gamepadconnected', (e) => { I.onPad?.(e.gamepad, true); });
+addEventListener('gamepadconnected', (e) => { I.rest?.delete(e.gamepad.index + ':' + e.gamepad.id); I.onPad?.(e.gamepad, true); });
 addEventListener('gamepaddisconnected', (e) => { I.onPad?.(e.gamepad, false); });
 
 // ---------------------------------------------------------------- the touch stick and buttons

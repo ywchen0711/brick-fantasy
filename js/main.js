@@ -317,7 +317,7 @@ async function title() {
     const m = G.s.map; await game.goto(m.id, m.at, { x: m.x, z: m.z, dir: m.dir, vehicle: G.s.vehicle }); return;
   }
 }
-function applyOpts() { const o = G.s.opts; setVolume('bgm', o.bgm); setVolume('sfx', o.sfx); UI.speed = [1, 2, 4, 99][o.msg ?? 1]; document.body.classList.toggle('nodof', !o.dof); }
+function applyOpts() { const o = G.s.opts; I.padOff = o.pad === 0; setVolume('bgm', o.bgm); setVolume('sfx', o.sfx); UI.speed = [1, 2, 4, 99][o.msg ?? 1]; document.body.classList.toggle('nodof', !o.dof); }
 setupTouch();
 I.onPad = (g, on) => { UI.toast(on ? '🎮 已連接手把：A 確定・B 取消・Y 選單・X 跑步・Select 奔奔鳥' : '🎮 手把已中斷連接'); if (on) I.usingPad(true); };
 I.onMode = (pad) => { const h = document.querySelector('#title .hint'); if (h) h.textContent = pad ? '🎮 左搖桿／十字鍵 移動・A 確定・B 取消・Y 選單・X 跑步・Select 奔奔鳥' : '方向鍵／WASD 移動・Z／Enter 確定・X／Esc 取消・C 選單・手機可直接觸控'; };
