@@ -242,7 +242,7 @@ export class BattleView {
     if (e.heal != null) { this.pop(t, e.heal, 'heal'); this.drawParty(); this.drawTag(t); return; }
     if (e.mpHeal != null) { this.pop(t, `MP ${e.mpHeal}`, 'mp'); this.drawParty(); return; }
     if (e.dmg != null) {
-      this.pop(t, e.dmg, e.crit ? 'crit' : e.weak ? 'weak' : e.resist ? 'res' : t.side === 'h' ? 'hurt' : 'dmg', e.weak ? '弱點！' : e.crit ? '會心！' : e.resist ? (e.dmg === 0 ? '無效' : '抵抗') : '');
+      this.pop(t, e.dmg, e.crit ? 'crit' : e.weak ? 'weak' : e.resist ? 'resi' : t.side === 'h' ? 'hurt' : 'dmg', e.weak ? '弱點！' : e.crit ? '會心！' : e.resist ? (e.dmg === 0 ? '無效' : '抵抗') : '');
       if (e.weak) sfx('weak'); if (e.crit) { sfx('crit'); I.rumble(90, 0.5, 0.3); } if (t.side === 'h' && e.dmg > t.maxhp * 0.25) I.rumble(160, 0.8, 0.5);
       if (e.el !== 'poison' && e.el !== 'cost') { v.hurt = 1; if (t.side === 'h') this.shake(0.15, 0.06); }
       if (e.weak && t.side === 'f') { this.flashTag(t); }

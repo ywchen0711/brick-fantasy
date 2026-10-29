@@ -185,7 +185,7 @@ body:not(.inmenu) #side { display: none; }
 #battle .pops { position: absolute; inset: 0; pointer-events: none; }
 .pop { position: absolute; transform: translate(-50%, -50%); font: 900 30px "Noto Sans TC", sans-serif; text-shadow: 0 0 3px #000, 0 3px 0 #000; animation: pop 1.3s ease-out forwards; white-space: nowrap; text-align: center; }
 .pop small { display: block; font-size: 15px; }
-.pop.dmg { color: #fff; } .pop.hurt { color: #ffdada; } .pop.crit { color: #ffe24a; font-size: 38px; } .pop.weak { color: #ffb02a; font-size: 36px; } .pop.res { color: #a8b4d8; font-size: 24px; }
+.pop.dmg { color: #fff; } .pop.hurt { color: #ffdada; } .pop.crit { color: #ffe24a; font-size: 38px; } .pop.weak { color: #ffb02a; font-size: 36px; } .pop.resi { color: #a8b4d8; font-size: 24px; }
 .pop.heal { color: #6aff8a; } .pop.mp { color: #7ad8ff; } .pop.st { color: #e8ecf8; font-size: 18px; } .pop.buff { color: #ffe070; font-size: 19px; } .pop.bad { color: #d090ff; font-size: 19px; } .pop.extra { color: #7af0ff; font-size: 22px; }
 @keyframes pop { 0% { opacity: 0; transform: translate(-50%, -20%) scale(1.6); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -150%); } }
 .bigpop { position: absolute; transform: translate(-50%, -50%); font: 900 64px "Noto Serif TC", serif; color: #fff; text-shadow: 0 0 20px #ffb02a, 0 0 4px #000, 0 4px 0 #8a4a00; animation: bigpop 1.2s ease-out forwards; letter-spacing: .1em; }
