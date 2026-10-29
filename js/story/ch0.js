@@ -76,7 +76,7 @@ export default function (A, BOSSES) {
     await D.fade(true, 1200);
     D.music('sad');
     await D.wait(800);
-    await D.goto('windcanyon', 's', { noFade: true, x: 24, z: 66 });
+    await D.goto('windcanyon', 's', { noFade: true, stayDark: true, x: 24, z: 66 });
   } });
 
   // ================================================================ the wind canyon

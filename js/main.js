@@ -49,7 +49,8 @@ export const game = {
     G.s.map = { id, x, z, dir, at };
     this.lastCell = `${x},${z}`; this.encLeft = this.nextEnc();
     const mus = typeof def.music === 'function' ? def.music() : def.music; if (mus && !o.keepMusic) music(field.vehicle === 'airship' ? 'airship' : mus);
-    if (!o.noFade) await UI.fade(false, 350);
+    // always come back out of the dark, unless a scene asks to stay dark and fades in itself
+    if (!o.stayDark && (!o.noFade || +getComputedStyle(document.getElementById('fade')).opacity > 0)) await UI.fade(false, o.noFade ? 600 : 350);
     if (def.name && !o.quiet && this.lastArea !== def.name) UI.area(def.name); this.lastArea = def.name;
     this.busy = false; field.control = true;
     // things that happen on arrival

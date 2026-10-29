@@ -104,7 +104,7 @@ body:not(.inmenu) #side { display: none; }
 #banner small { font-size: 18px; color: var(--gold); }
 #banner.show { animation: ban 3.2s ease forwards; }
 @keyframes ban { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
-.card { position: fixed; inset: 0; z-index: 45; display: grid; place-content: center; text-align: center; background: rgba(5, 8, 20, .92); opacity: 0; transition: opacity .8s; cursor: pointer; }
+.card { position: fixed; inset: 0; z-index: 55; display: grid; place-content: center; text-align: center; background: rgba(5, 8, 20, .92); opacity: 0; transition: opacity .8s; cursor: pointer; }
 .card.show { opacity: 1; }
 .chcard small { font-size: 18px; letter-spacing: .5em; color: var(--gold); }
 .chcard b { display: block; font: 900 52px "Noto Serif TC", serif; letter-spacing: .2em; margin: 12px 0; text-shadow: 0 0 24px #7af0ff; }
