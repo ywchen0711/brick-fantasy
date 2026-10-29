@@ -276,12 +276,16 @@ function frame(now) {
   I.poll();
   UI.tick(dt, now / 1000);
   if (game.mode === 'field' || game.mode === 'busy') {
-    if (game.mode === 'field' && !UI.busy() && !game.busy && field.control) {
+    if (HUD.full) { if (I.hit('back') || I.hit('map') || I.hit('ok')) HUD.closeFull(); }
+    else if (game.mode === 'field' && !UI.busy() && !game.busy && field.control && I.hit('map')) HUD.openFull();
+    else if (game.mode === 'field' && !UI.busy() && !game.busy && field.control) {
+      if (I.hit('zin')) HUD.zoomBy(1); if (I.hit('zout')) HUD.zoomBy(-1);
       if (I.hit('ok')) game.interact(); else if (I.hit('menu')) { game.busy = true; field.control = false; openMenu(game).then(() => { game.busy = false; field.control = true; }); } else if (I.hit('ride')) game.ride();
     }
     if (game.mode === 'field' && G.s) G.s.time += dt;
+    field.paused = HUD.full;
     field.runTasks(dt); field.update(dt); field.render();
-    HUD.visible(!document.body.classList.contains('inmenu')); HUD.update(dt, field); if (I.hit('map') && !UI.busy()) HUD.cycle();
+    HUD.visible(!document.body.classList.contains('inmenu')); HUD.update(dt, field);
     for (let i = game.emotes.length - 1; i >= 0; i--) { const e = game.emotes[i]; e.t += dt; const p = new THREE.Vector3(e.a.x * 0.6, (e.a.y + 3.4) * 0.6, e.a.z * 0.6).project(field.cam); e.el.style.left = (p.x + 1) / 2 * innerWidth + 'px'; e.el.style.top = (1 - p.y) / 2 * innerHeight + 'px'; if (e.t > 1) { e.el.remove(); game.emotes.splice(i, 1); } }
   } else if (game.mode === 'battle') { HUD.visible(false); bv.update(dt); bv.render(); }
   else if (game.mode === 'title') { game.titleTick?.(); field.update(dt); titleCam(dt); field.render(); }

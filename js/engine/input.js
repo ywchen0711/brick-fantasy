@@ -2,7 +2,7 @@
 // up/down/left/right with key repeat for menus. Touch: a stick on the left half, buttons on the right.
 const keys = new Set(), edge = new Set(), held = {};
 const MAP = {
-  ok: ['KeyZ', 'Enter', 'Space', 'KeyJ'], back: ['KeyX', 'Escape', 'Backspace', 'KeyK'], menu: ['KeyC', 'Tab', 'KeyM'], run: ['ShiftLeft', 'ShiftRight'], ride: ['KeyR'], map: ['KeyN'],
+  ok: ['KeyZ', 'Enter', 'Space', 'KeyJ'], back: ['KeyX', 'Escape', 'Backspace', 'KeyK'], menu: ['KeyC', 'Tab'], run: ['ShiftLeft', 'ShiftRight'], ride: ['KeyR'], map: ['KeyM', 'KeyN'], zin: ['Equal', 'NumpadAdd'], zout: ['Minus', 'NumpadSubtract'],
   up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'], pgup: ['KeyQ', 'PageUp'], pgdn: ['KeyE', 'PageDown'],
 };
 export const I = {
@@ -45,7 +45,7 @@ export const I = {
     const now = new Set();
     if (B(0)) now.add('ok'); if (B(1)) now.add('back'); if (B(3) || B(9)) now.add('menu'); if (B(2) || B(6) || B(7)) now.add('run');
     if (B(12)) now.add('up'); if (B(13)) now.add('down'); if (B(14)) now.add('left'); if (B(15)) now.add('right');
-    if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8) || B(10)) now.add('ride');
+    if (B(4)) now.add('pgup'); if (B(5)) now.add('pgdn'); if (B(8)) now.add('ride'); if (B(10)) now.add('map');
     for (const a of now) if (!this.gpHeld.has(a)) this.gpEdge.add(a);
     if (now.size || l > 0.3) this.usingPad(true);
     this.gpHeld = now;

@@ -101,7 +101,7 @@ export class Field {
     const M = this.M; if (!M) return; this.time += dt;
     // the player
     const L = this.leader;
-    if (L && this.control) {
+    if (L && this.control && !this.paused) {
       const ax = I.axis();
       if (ax.l > 0.15) {
         const sp = (this.vehicle === 'airship' ? 14 : this.vehicle === 'ship' ? 9 : this.vehicle === 'dashbird' ? 10 : I.down('run') ? 7.6 : 5.4) * Math.max(0.45, ax.l) * dt;
@@ -111,7 +111,7 @@ export class Field {
         L.dir = lerpAngle(L.dir, Math.atan2(mx, mz), Math.min(1, dt * 14)); L.moving = moved > 0.0005; L.walk += moved * 0.9;
         if (moved) { this.onStep?.(moved); this.pushTrail(); }
       } else L.moving = false;
-    }
+    } else if (L && this.paused) L.moving = false;
     // heights, poses
     for (const a of this.actors) {
       const tx = Math.floor(a.x), tz = Math.floor(a.z), th = this.vehicle === 'airship' && a === L ? 16 : M.h(tx, tz);
