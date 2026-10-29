@@ -13,7 +13,7 @@ export class Field {
     this.R = renderer; this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.5, 400);
     this.xray = new THREE.Scene(); this.xmat = new THREE.MeshBasicMaterial({ color: '#7ab8ff', transparent: true, opacity: 0.45, depthFunc: THREE.GreaterDepth, depthWrite: false });
     this.actors = []; this.npcs = []; this.props = []; this.party = []; this.trail = []; this.control = true; this.camOff = { dist: 15, pitch: 0.92 }; this.camFocus = null; this.shakeT = 0;
-    this.lightPool = []; this.time = 0; this.encCount = 20; this.vehicle = null;
+    this.lightPool = []; this.time = 0; this.encCount = 20; this.vehicle = null; this.yaw = 0; this.pitchAdd = 0; this.zoomUser = 1;
   }
   // ---------------------------------------------------------------- building a map's scene
   build(M, opts = {}) {
@@ -105,9 +105,10 @@ export class Field {
       const ax = I.axis();
       if (ax.l > 0.15) {
         const sp = (this.vehicle === 'airship' ? 14 : this.vehicle === 'ship' ? 9 : this.vehicle === 'dashbird' ? 10 : I.down('run') ? 7.6 : 5.4) * Math.max(0.45, ax.l) * dt;
-        const before = [L.x, L.z]; this.tryMove(L, ax.x * sp, ax.z * sp);
+        const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), mx = ax.x * cy + ax.z * sy, mz = -ax.x * sy + ax.z * cy; // the stick, turned to the camera
+        const before = [L.x, L.z]; this.tryMove(L, mx * sp, mz * sp);
         const moved = Math.hypot(L.x - before[0], L.z - before[1]);
-        L.dir = lerpAngle(L.dir, Math.atan2(ax.x, ax.z), Math.min(1, dt * 14)); L.moving = moved > 0.0005; L.walk += moved * 2.2;
+        L.dir = lerpAngle(L.dir, Math.atan2(mx, mz), Math.min(1, dt * 14)); L.moving = moved > 0.0005; L.walk += moved * 0.9;
         if (moved) { this.onStep?.(moved); this.pushTrail(); }
       } else L.moving = false;
     }
@@ -126,7 +127,17 @@ export class Field {
     for (const n of this.npcs) if (n.mark) { n.mark.rotation.y += dt * 2; n.mark.position.y = (n.F.kid ? 1.5 : 1.85) / n.root.scale.y + 0.3 + Math.sin(this.time * 4) * 0.05; }
     // vehicles
     if (this.vObj) { const v = this.vObj; if (this.vehicle) { v.position.set(L.x * VS, (this.vehicle === 'airship' ? 16 : this.vehicle === 'ship' ? 2.1 : L.y) * VS, L.z * VS); v.rotation.y = L.dir; if (v.userData.props) for (const p of v.userData.props) p.rotation.x += dt * 20; if (v.userData.legs) v.userData.legs.forEach((l, i) => { l.rotation.x = L.moving ? Math.sin(L.walk * 3 + i * Math.PI) * 0.7 : 0; }); } }
+    this.look(dt);
     this.updateLights(dt); this.updateCam(dt);
+  }
+  // turning the view: Q / E or LB / RB, the right stick, dragging the screen, the wheel to zoom, R3 to reset
+  look(dt) {
+    const l = I.takeLook(); let dy = l.dx * 0.006, dp = l.dy * 0.004;
+    if (this.control) { if (I.down('pgup')) dy -= dt * 2.2; if (I.down('pgdn')) dy += dt * 2.2; }
+    dy += I.gpLook.x * dt * 2.6; dp += I.gpLook.z * dt * 1.4;
+    this.yaw -= dy; this.pitchAdd = Math.max(-0.45, Math.min(0.5, this.pitchAdd + dp)); this.zoomUser = Math.max(0.55, Math.min(1.8, this.zoomUser * Math.pow(1.0015, l.zoom)));
+    if (l.reset) { this.yaw = 0; this.pitchAdd = 0; this.zoomUser = 1; }
+    this.turning = Math.abs(dy) + Math.abs(dp) > 0.0005;
   }
   pushTrail() { const L = this.leader, t0 = this.trail[0]; if (Math.hypot(L.x - t0.x, L.z - t0.z) > 0.12) { this.trail.unshift({ x: L.x, z: L.z, y: L.y, dir: L.dir }); this.trail.length = 40; } }
   pose(a, dt) {
@@ -145,7 +156,7 @@ export class Field {
     if (n.goal) {
       const dx = n.goal[0] + 0.5 - n.x, dz = n.goal[1] + 0.5 - n.z, d = Math.hypot(dx, dz);
       if (d < 0.08) { n.goal = null; n.moving = false; this.M.block(Math.floor(n.x), Math.floor(n.z), true); return; }
-      const s = Math.min(d, 1.8 * dt); n.x += dx / d * s; n.z += dz / d * s; n.dir = lerpAngle(n.dir, Math.atan2(dx, dz), dt * 8); n.moving = true; n.walk += s * 2.2; return;
+      const s = Math.min(d, 1.8 * dt); n.x += dx / d * s; n.z += dz / d * s; n.dir = lerpAngle(n.dir, Math.atan2(dx, dz), dt * 8); n.moving = true; n.walk += s * 0.9; return;
     }
     if (n.wt > 0) return; n.wt = 2 + Math.random() * 4;
     const R = n.npc.wander, [hx, hz] = n.home, cx = Math.floor(n.x), cz = Math.floor(n.z);
@@ -164,7 +175,7 @@ export class Field {
         if (i >= pts.length) { a.moving = false; a.busy = false; if (a.npc) this.M.block(Math.floor(a.x), Math.floor(a.z), true); if (a === this.leader) { for (const t of this.trail) { } } return true; }
         const [tx, tz] = pts[i], dx = tx - a.x, dz = tz - a.z, d = Math.hypot(dx, dz);
         if (d < 0.05) { i++; return false; }
-        const s = Math.min(d, speed * dt); a.x += dx / d * s; a.z += dz / d * s; a.dir = lerpAngle(a.dir, Math.atan2(dx, dz), Math.min(1, dt * 12)); a.moving = true; a.walk += s * 2.2;
+        const s = Math.min(d, speed * dt); a.x += dx / d * s; a.z += dz / d * s; a.dir = lerpAngle(a.dir, Math.atan2(dx, dz), Math.min(1, dt * 12)); a.moving = true; a.walk += s * 0.9;
         if (a === this.leader) this.pushTrail();
         return false;
       };
@@ -190,10 +201,10 @@ export class Field {
     const L = this.leader; if (!L) return;
     const f = this.camFocus || { x: L.x, z: L.z, y: L.y };
     const tgt = tmpV.set(f.x * VS, (f.y ?? L.y) * VS + 0.6, f.z * VS);
-    const o = this.camOff, dist = o.dist * (this.camZoom || 1), p = o.pitch;
-    const want = new THREE.Vector3(tgt.x, tgt.y + Math.sin(p) * dist, tgt.z + Math.cos(p) * dist);
+    const o = this.camOff, dist = o.dist * (this.camZoom || 1) * this.zoomUser, p = Math.max(0.3, Math.min(1.45, o.pitch + this.pitchAdd));
+    const want = new THREE.Vector3(tgt.x + Math.sin(this.yaw) * Math.cos(p) * dist, tgt.y + Math.sin(p) * dist, tgt.z + Math.cos(this.yaw) * Math.cos(p) * dist);
     if (snap || !this.camPos) { this.camPos = want.clone(); this.camTgt = tgt.clone(); }
-    const k = Math.min(1, dt * 5); this.camPos.lerp(want, k); this.camTgt.lerp(tgt, k);
+    const k = Math.min(1, dt * (this.turning ? 14 : 5)); this.camPos.lerp(want, k); this.camTgt.lerp(tgt, k);
     this.cam.position.copy(this.camPos); if (this.shakeT > 0) { this.shakeT -= dt; this.cam.position.x += (Math.random() - 0.5) * this.shakeA; this.cam.position.y += (Math.random() - 0.5) * this.shakeA; }
     this.cam.lookAt(this.camTgt);
     this.sun.position.set(this.camTgt.x + 12, this.camTgt.y + 22, this.camTgt.z + 8); this.sun.target.position.copy(this.camTgt);

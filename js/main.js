@@ -53,6 +53,7 @@ export const game = {
     if (!o.stayDark && (!o.noFade || +getComputedStyle(document.getElementById('fade')).opacity > 0)) await UI.fade(false, o.noFade ? 600 : 350);
     if (def.name && !o.quiet && this.lastArea !== def.name) UI.area(def.name); this.lastArea = def.name;
     this.busy = false; field.control = true;
+    if (!G.s.flags.camHint && !this.enters.length) { G.s.flags.camHint = true; UI.toast(I.touch ? '右半邊拖曳可以旋轉視角，雙指縮放' : I.padMode ? '右搖桿／LB・RB 旋轉視角，按下右搖桿回正' : 'Q／E 或滑鼠拖曳旋轉視角・滾輪縮放・雙擊回正', 5000); }
     // things that happen on arrival
     for (const en of this.enters) { if (en.when && !en.when()) continue; field.control = false; this.busy = true; try { await en.enter(D); } catch (err) { console.error(err); } this.busy = false; field.control = true; if (G.s.map.id !== id) return; }
   },
