@@ -20,7 +20,13 @@ import { heroBrain, synFor } from './ai.js';
 import { skyTex } from './field.js';
 
 const EL_ICON = { fire: '🔥', ice: '❄️', thunder: '⚡', water: '💧', wind: '🌪️', earth: '🪨', light: '✨', dark: '🌑', slash: '🗡️', pierce: '🔱', strike: '🔨', shot: '🏹' };
-const ST_ICON = { poison: '☠', sleep: '💤', silence: '🤐', blind: '🕶', paralyze: '⚡', slow: '🐢', haste: '💨', protect: '🛡', shell: '🔰', regen: '💚', atkUp: '⚔↑', atkDown: '⚔↓', defDown: '🛡↓', magUp: '✦↑', magDown: '✦↓', sprDown: '◇↓', berserk: '💢', taunt: '❗', blink: '👥', endure: '💪', doom: '💀', stop: '⏸', confuse: '💫', critUp: '🎯', evade: '🍃' };
+// short coloured status chips for the party panel and the enemy name tags: [label, colour class]
+const ST_TAG = { poison: ['毒', 'b'], sleep: ['眠', 'b'], silence: ['默', 'b'], blind: ['盲', 'b'], paralyze: ['麻', 'b'], slow: ['慢', 'b'], stop: ['停', 'b'], confuse: ['亂', 'b'], berserk: ['狂', 'b'], doom: ['死宣', 'd'],
+  atkDown: ['攻↓', 'b'], defDown: ['防↓', 'b'], magDown: ['魔↓', 'b'], sprDown: ['精↓', 'b'],
+  haste: ['快', 'g'], protect: ['盾', 'g'], shell: ['魔障', 'g'], regen: ['再生', 'g'], atkUp: ['攻↑', 'g'], magUp: ['魔↑', 'g'], critUp: ['會心↑', 'g'], evade: ['迴避↑', 'g'],
+  blink: ['分身', 'g'], endure: ['不屈', 'g'], taunt: ['挑釁', 'g'], reflect: ['反射', 'g'] };
+const ST_CLS = { poison: 'psn', sleep: 'slp', silence: 'mut', paralyze: 'par', confuse: 'cnf', berserk: 'bsk', stop: 'stp' };
+const stTags = (u, max = 6) => { const ks = Object.keys(u.st).filter((k) => ST_TAG[k] && u.st[k] != null); const tag = (k) => `<i class="s${ST_TAG[k][1]} ${ST_CLS[k] || ''}" title="${ST_NAME[k] || k}">${ST_TAG[k][0]}${k === 'doom' ? Math.max(0, u.st.doom) : ''}</i>`; return ks.slice(0, ks.length > max ? max - 1 : max).map(tag).join('') + (ks.length > max ? `<i class="sm">+${ks.length - max + 1}</i>` : ''); };
 const v3 = (x, y, z) => new THREE.Vector3(x, y, z);
 
 export class BattleView {
@@ -315,7 +321,7 @@ export class BattleView {
   }
   drawParty() {
     const el = this.el.querySelector('.party'); if (!this.b) return;
-    el.innerHTML = this.b.heroes().map((u) => `<div class="pm${u === this.current ? ' now' : ''}${u.hp <= 0 ? ' ko' : ''}${u.hp > 0 && u.hp < u.maxhp / 4 ? ' low' : ''}" data-uid="${u.uid}"><b>${u.n}<span class="st">${Object.keys(u.st).map((k) => ST_ICON[k] || '').join('')}</span></b><div class="hp"><i style="width:${u.hp / u.maxhp * 100}%"></i></div><em>${u.hp}<small>/${u.maxhp}</small></em><div class="mp"><i style="width:${u.mp / Math.max(1, u.maxmp) * 100}%"></i></div><em class="m">${u.mp}</em></div>`).join('');
+    el.innerHTML = this.b.heroes().map((u) => `<div class="pm${u === this.current ? ' now' : ''}${u.hp <= 0 ? ' ko' : ''}${u.hp > 0 && u.hp < u.maxhp / 4 ? ' low' : ''}" data-uid="${u.uid}"><b>${u.n}</b><div class="hp"><i style="width:${u.hp / u.maxhp * 100}%"></i></div><em>${u.hp}<small>/${u.maxhp}</small></em><div class="mp"><i style="width:${u.mp / Math.max(1, u.maxmp) * 100}%"></i></div><em class="m">${u.mp}</em>${u.hp > 0 && Object.keys(u.st).length ? `<div class="sts">${stTags(u, 8)}</div>` : ''}</div>`).join('');
     el.querySelectorAll('.pm').forEach((d) => d.addEventListener('click', (e) => { e.stopPropagation(); const u = this.b.units.find((x) => x.uid === +d.dataset.uid); this.pickCb?.(u); }));
     this.drawRes();
   }
@@ -324,7 +330,7 @@ export class BattleView {
   drawTag(u) {
     const t = this.tagEls.get(u.uid); if (!t || u.side !== 'f') return;
     const all = [...new Set([...u.w])], icons = all.map((e) => u.known.has(e) || u.scanned ? `<i class="w">${EL_ICON[e] || e}</i>` : '<i class="q">?</i>').join('');
-    t.innerHTML = `<b>${u.n}</b>${u.scanned || u.boss ? `<div class="hpb"><i style="width:${u.hp / u.maxhp * 100}%"></i></div>` : ''}<div class="brk${u.stag ? ' stag' : ''}"><i style="width:${u.stag ? 0 : u.brk / u.brkMax * 100}%"></i><span>${u.stag ? 'BREAK' : Math.ceil(u.brk)}</span></div><div class="wk">${icons || '<i class="q">－</i>'}</div>${Object.keys(u.st).length ? `<div class="sts">${Object.keys(u.st).map((k) => ST_ICON[k] || '').join('')}</div>` : ''}`;
+    t.innerHTML = `<b>${u.n}</b>${u.scanned || u.boss ? `<div class="hpb"><i style="width:${u.hp / u.maxhp * 100}%"></i></div>` : ''}<div class="brk${u.stag ? ' stag' : ''}"><i style="width:${u.stag ? 0 : u.brk / u.brkMax * 100}%"></i><span>${u.stag ? 'BREAK' : Math.ceil(u.brk)}</span></div><div class="wk">${icons || '<i class="q">－</i>'}</div>${Object.keys(u.st).length ? `<div class="sts">${stTags(u, 4)}</div>` : ''}`;
     t.classList.toggle('chg', !!u.charging);
   }
   flashTag(u) { const t = this.tagEls.get(u.uid); if (!t) return; t.classList.remove('fl'); void t.offsetWidth; t.classList.add('fl'); }

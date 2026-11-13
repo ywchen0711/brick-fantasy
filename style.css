@@ -162,7 +162,11 @@ body:not(.inmenu) #side { display: none; }
 #battle .party { position: absolute; right: 12px; bottom: 12px; display: grid; gap: 4px; width: min(430px, 56vw); }
 #battle .pm { display: grid; grid-template-columns: 76px 1fr 92px 46px 34px; grid-template-rows: auto; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; background: var(--win); border: 2px solid rgba(255,255,255,.3); font-size: 14px; cursor: pointer; }
 #battle .pm b { white-space: nowrap; }
-#battle .pm .st { display: block; font-size: 10px; font-weight: 500; white-space: nowrap; overflow: hidden; height: 13px; }
+#battle .pm .sts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; margin-top: -3px; }
+#battle .sts i { font: normal 700 11px/15px "Noto Sans TC", sans-serif; padding: 0 4px; border-radius: 4px; white-space: nowrap; color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.6); }
+#battle .sts i.sb { background: #7a4ab8; } #battle .sts i.sg { background: #2a8a5a; } #battle .sts i.sd { background: #2a0a1a; color: #ff6a6a; border: 1px solid #ff3a3a; } #battle .sts i.sm { background: rgba(255,255,255,.2); }
+#battle .sts i.psn { background: #4a9a2a; } #battle .sts i.slp { background: #3a5aa8; } #battle .sts i.par { background: #b89a1a; } #battle .sts i.cnf { background: #c84aa8; } #battle .sts i.bsk { background: #c8322a; } #battle .sts i.stp { background: #5a6a7a; } #battle .sts i.mut { background: #6a6a8a; }
+#battle .tag .sts { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; margin-top: 3px; }
 #battle .pm .hp, #battle .pm .mp { height: 7px; border-radius: 4px; background: rgba(255,255,255,.15); overflow: hidden; }
 #battle .pm .hp i { display: block; height: 100%; background: linear-gradient(90deg, #4ae86a, #c8ff6a); transition: width .3s; }
 #battle .pm .mp i { display: block; height: 100%; background: linear-gradient(90deg, #3a8aff, #7ad8ff); }
@@ -214,7 +218,7 @@ body.inbattle #tbtns, body.inmenu #tbtns { display: none; }
   .menu1 { width: 120px; left: 8px; top: 8px; } .menu2, .menu2.wide { left: 136px; top: 8px; width: calc(100vw - 144px); }
   #side { top: auto; bottom: 8px; right: 8px; left: 136px; width: auto; max-height: 38vh; font-size: 12px; }
   .say { font-size: 16px; min-height: 100px; padding: 14px 16px; }
-  #battle .party { width: 62vw; } #battle .pm { grid-template-columns: 52px 1fr 66px 30px 26px; font-size: 12px; gap: 4px; padding: 4px 6px; } #battle .pm .st { display: none; }
+  #battle .party { width: 62vw; } #battle .pm { grid-template-columns: 52px 1fr 66px 30px 26px; font-size: 12px; gap: 4px; padding: 4px 6px; }
   .bt-menu { width: 150px; bottom: 60px; } .bt-menu.sub { left: 170px; width: calc(100vw - 180px); }
   #battle .tl i { width: 32px; height: 24px; font-size: 10px; }
   .chcard b { font-size: 36px; } .echocard b { font-size: 40px; } #title .logo i { font-size: 44px; }
