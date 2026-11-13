@@ -41,7 +41,7 @@ body.nodof #tilt, body.inbattle #tilt { display: none; }
 @keyframes bob { 50% { transform: translateY(4px); } }
 .hl { color: var(--gold); font-weight: 700; }
 .list { left: 50%; top: 50%; transform: translate(-50%, -50%); min-width: 260px; max-width: 94vw; max-height: 80vh; padding: 14px; display: flex; flex-direction: column; }
-.list .rows { display: grid; gap: 4px; overflow-y: auto; padding-right: 4px; }
+.list .rows { display: grid; gap: 4px; overflow-y: auto; padding-right: 4px; min-height: 0; flex: 1 1 auto; }
 .list .row { display: flex; align-items: center; gap: 8px; text-align: left; padding: 8px 12px; border-radius: 9px; border: 2px solid transparent; background: rgba(255,255,255,.04); cursor: pointer; min-height: 40px; }
 .list .row.on { border-color: var(--gold); background: rgba(255, 216, 74, .16); }
 .list .row.on::before { content: '▶'; color: var(--gold); font-size: 12px; margin-left: -4px; }
@@ -51,7 +51,7 @@ body.nodof #tilt, body.inbattle #tilt { display: none; }
 .list .row small { color: var(--dim); font-size: 12px; }
 .list .row em { font-style: normal; color: var(--dim); font-size: 14px; white-space: nowrap; }
 .list .row .ic { width: 22px; text-align: center; }
-.list .help { min-height: 1.4em; margin-top: 8px; font-size: 13px; color: var(--dim); line-height: 1.5; }
+.list .help { flex: none; min-height: 1.4em; margin-top: 8px; font-size: 13px; color: var(--dim); line-height: 1.5; }
 .list .help:empty { display: none; }
 .list .x { position: absolute; top: 6px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--dim); background: rgba(0,0,0,.3); cursor: pointer; font-size: 14px; }
 .choice { top: auto; bottom: 160px; transform: translateX(-50%); }
@@ -151,7 +151,7 @@ body:not(.inmenu) #side { display: none; }
 #battle .tag b { display: block; font-size: 13px; white-space: nowrap; }
 #battle .tag .brk { position: relative; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; margin: 3px 0; }
 #battle .tag .brk i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #5ad8ff, #c8f8ff); transition: width .3s; }
-#battle .tag .brk span { position: relative; font: 900 10px sans-serif; line-height: 12px; text-shadow: 0 0 2px #000; }
+#battle .tag .brk span { position: relative; display: block; font: 900 10px sans-serif; line-height: 12px; text-shadow: 0 0 2px #000; }
 #battle .tag .brk.stag { background: #ffb02a; } #battle .tag .brk.stag span { color: #fff; }
 #battle .tag .hpb { height: 4px; background: rgba(255,255,255,.15); border-radius: 2px; overflow: hidden; margin-top: 2px; }
 #battle .tag .hpb i { display: block; height: 100%; background: #ff5a5a; }
@@ -215,12 +215,26 @@ body.touch #tbtns { display: block; }
 #tbtns button.on { background: rgba(255, 216, 74, .6); }
 body.inbattle #tbtns, body.inmenu #tbtns { display: none; }
 @media (max-width: 760px) {
-  .menu1 { width: 120px; left: 8px; top: 8px; } .menu2, .menu2.wide { left: 136px; top: 8px; width: calc(100vw - 144px); }
-  #side { top: auto; bottom: 8px; right: 8px; left: 136px; width: auto; max-height: 38vh; font-size: 12px; }
+  .menu1 { width: 128px; min-width: 0; left: 8px; top: 8px; padding: 10px; } .menu1 .row { padding: 6px 8px; gap: 4px; font-size: 14px; white-space: nowrap; }
+  /* a sub-window takes the full width (the main menu hides under it) and stops above the info panel at the bottom */
+  .menu2, .menu2.wide { left: 8px; top: 8px; width: calc(100vw - 16px); min-width: 0; }
+  body:has(#side:not([hidden])) .menu2 { max-height: calc(62vh - 24px); }
+  body:has(#ui .menu2) .menu1 { visibility: hidden; }
+  .menu2 .row { padding: 6px 8px; gap: 5px; font-size: 14px; } .menu2 .row em { font-size: 12px; }
+  #side { top: auto; bottom: 8px; right: 8px; left: 144px; width: auto; max-height: 38vh; font-size: 12px; }
+  body:has(#ui .menu2) #side { left: 8px; }
   .say { font-size: 16px; min-height: 100px; padding: 14px 16px; }
-  #battle .party { width: 62vw; } #battle .pm { grid-template-columns: 52px 1fr 66px 30px 26px; font-size: 12px; gap: 4px; padding: 4px 6px; }
-  .bt-menu { width: 150px; bottom: 60px; } .bt-menu.sub { left: 170px; width: calc(100vw - 180px); }
-  #battle .tl i { width: 32px; height: 24px; font-size: 10px; }
+  #battle .pm { grid-template-columns: 52px 1fr 66px 30px 26px; font-size: 12px; gap: 4px; padding: 4px 6px; }
+  /* battle on a phone: party panel across the bottom, windows stacked above it, resonance top-right, timeline clear of the buttons */
+  #battle .party { left: 8px; right: 8px; bottom: 8px; width: auto; }
+  .bt-menu, .tgt { left: 8px; bottom: calc(var(--party-h, 110px) + 16px); }
+  .bt-menu { width: 150px; min-width: 0; max-height: calc(100vh - var(--party-h, 110px) - 110px); }
+  .bt-menu.sub { left: 8px; width: calc(100vw - 16px); } .bt-menu.sub .row { padding: 6px 8px; gap: 5px; font-size: 14px; }
+  #battle .res { left: auto; right: 8px; bottom: auto; top: 48px; padding: 4px 8px; } #battle .res .bar i { width: 30px; }
+  #battle .msg { top: 88px; max-width: calc(100vw - 16px); white-space: normal; text-align: center; }
+  #battle .aname { top: 132px; }
+  #battle .tl { left: 8px; transform: none; max-width: calc(100vw - 150px); overflow: hidden; padding: 4px 6px; }
+  #battle .tl i { width: 32px; height: 24px; font-size: 10px; flex: none; }
   .chcard b { font-size: 36px; } .echocard b { font-size: 40px; } #title .logo i { font-size: 44px; }
   .ultname { font-size: 32px; } .bigpop { font-size: 44px; } .pop { font-size: 24px; }
 }

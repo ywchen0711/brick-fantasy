@@ -323,6 +323,7 @@ export class BattleView {
     const el = this.el.querySelector('.party'); if (!this.b) return;
     el.innerHTML = this.b.heroes().map((u) => `<div class="pm${u === this.current ? ' now' : ''}${u.hp <= 0 ? ' ko' : ''}${u.hp > 0 && u.hp < u.maxhp / 4 ? ' low' : ''}" data-uid="${u.uid}"><b>${u.n}</b><div class="hp"><i style="width:${u.hp / u.maxhp * 100}%"></i></div><em>${u.hp}<small>/${u.maxhp}</small></em><div class="mp"><i style="width:${u.mp / Math.max(1, u.maxmp) * 100}%"></i></div><em class="m">${u.mp}</em>${u.hp > 0 && Object.keys(u.st).length ? `<div class="sts">${stTags(u, 8)}</div>` : ''}</div>`).join('');
     el.querySelectorAll('.pm').forEach((d) => d.addEventListener('click', (e) => { e.stopPropagation(); const u = this.b.units.find((x) => x.uid === +d.dataset.uid); this.pickCb?.(u); }));
+    document.documentElement.style.setProperty('--party-h', el.offsetHeight + 'px'); // phones stack the command windows above the party panel
     this.drawRes();
   }
   drawRes() { const v = this.b.res, el = this.el.querySelector('.res'); el.querySelectorAll('.bar i').forEach((i, k) => { const f = Math.max(0, Math.min(1, (v - k * 100) / 100)); i.style.setProperty('--f', f); i.classList.toggle('full', f >= 1); }); }

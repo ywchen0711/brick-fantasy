@@ -214,10 +214,11 @@ async function optsMenu() {
 }
 // ---------------------------------------------------------------- shop, inn, save
 export async function shopMenu(stock, name = '商店') {
+  document.body.classList.add('inmenu'); // shows the gold panel (#side is hidden outside menus)
   for (;;) {
     side(`<div class="gil big">💰 ${G.s.gil.toLocaleString()} G</div>`);
     const r = await UI.list([{ label: '買', k: 'buy' }, { label: '賣', k: 'sell' }, { label: '離開', k: 'out' }], { title: name, cls: 'menu2' });
-    if (r.index < 0 || r.item.k === 'out') { side(''); return; }
+    if (r.index < 0 || r.item.k === 'out') { side(''); document.body.classList.remove('inmenu'); return; }
     if (r.item.k === 'buy') for (;;) {
       side(`<div class="gil big">💰 ${G.s.gil.toLocaleString()} G</div>`);
       const items = stock.filter((id) => ITEMS[id]).map((id) => { const it = ITEMS[id]; const who = it.kind === 'weapon' || it.kind === 'armor' ? active().filter((m) => canEquip(m, it)).map((m) => { const sl = it.kind === 'weapon' ? 'weapon' : 'armor'; const d = diff(m, sl, id); return `${CHARS[m].n} ${d || '—'}`; }).join('<br>') : ''; return { label: it.n, icon: it.icon, right: `${it.price.toLocaleString()} G`, id, disabled: G.s.gil < it.price, help: `${it.d}${who ? '<br>' + who : ''}<br>持有：${count(id)}` }; });
